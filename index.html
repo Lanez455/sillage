@@ -327,7 +327,30 @@ a{color:inherit;text-decoration:none}
   .mobile-nav button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .mobile-nav button.active{color:var(--gold-soft)}
 }
-:where(button,a,input,select):focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:8px}
+:where(button,a,input,select,textarea):focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:8px}
+
+/* ---------- Éditeur de recette ---------- */
+.editor h3{font-family:var(--font-display);font-weight:500;font-size:26px;margin-bottom:4px}
+.editor .editor-sub{font-size:13.5px;color:var(--muted);margin-bottom:22px;line-height:1.5}
+.form-field{margin-bottom:16px}
+.form-field>label{display:block;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:9px}
+.form-input,.form-textarea{width:100%;background:var(--surface2);border:1px solid var(--line2);color:var(--text);border-radius:12px;padding:12px 14px;font-size:14px;outline:none;font-family:var(--font-body);transition:border-color .2s}
+.form-input:focus,.form-textarea:focus{border-color:var(--gold-deep)}
+.form-textarea{resize:vertical;min-height:82px;line-height:1.55}
+.form-input::placeholder,.form-textarea::placeholder{color:var(--faint)}
+.form-row{display:grid;grid-template-columns:1fr 96px;gap:10px;align-items:center;margin-bottom:11px}
+.dose-input{background:var(--surface2);border:1px solid var(--line2);color:var(--gold-soft);border-radius:12px;padding:12px 10px;font-size:14px;font-family:var(--font-mono);text-align:center;outline:none;transition:border-color .2s}
+.dose-input:focus{border-color:var(--gold-deep)}
+.tag-picker{display:flex;flex-wrap:wrap;gap:8px}
+.tag-pick{font-size:12.5px;color:var(--muted);border:1px solid var(--line2);padding:7px 13px;border-radius:999px;cursor:pointer;transition:all .18s;user-select:none}
+.tag-pick:hover{color:var(--text);border-color:var(--gold-deep)}
+.tag-pick.on{color:#171104;background:linear-gradient(135deg,var(--btn-g1),var(--btn-g2));border-color:transparent;font-weight:500}
+.editor-preview{display:flex;align-items:center;gap:16px;background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:15px 17px;margin:4px 0 20px}
+.editor-preview .pv-num{font-family:var(--font-display);font-size:30px;color:var(--gold-soft);font-weight:500;line-height:1;flex-shrink:0}
+.editor-preview .pv-txt{font-size:12.5px;color:var(--muted);line-height:1.5}
+.editor-preview .pv-txt b{color:var(--text);font-weight:500}
+.editor-actions{display:flex;gap:12px;margin-top:6px}
+.form-error{color:var(--wine);font-size:12.5px;margin-bottom:12px;min-height:16px}
 </style>
 </head>
 <body>
@@ -361,7 +384,7 @@ a{color:inherit;text-decoration:none}
       <button class="icon-btn" id="themeBtn" aria-label="Changer de thème" onclick="toggleTheme()"><svg id="themeIcon" viewBox="0 0 24 24"></svg></button>
       <button class="icon-btn" aria-label="Messagerie" onclick="toast('Messagerie privée — 2 conversations')"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H4l1.7-3.4A8 8 0 1 1 21 12z"/></svg></button>
       <button class="icon-btn" aria-label="Notifications" onclick="toast('3 nouvelles notifications')"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 1 0-12 0c0 6-2 7-2 7h16s-2-1-2-7M10.5 20a1.8 1.8 0 0 0 3 0"/></svg><span class="notif-dot"></span></button>
-      <div class="avatar" data-page="profil" onclick="go('profil')">CR</div>
+      <div class="avatar" data-page="profil" role="button" tabindex="0" aria-label="Mon profil">CR</div>
     </div>
   </div>
 
@@ -380,7 +403,7 @@ a{color:inherit;text-decoration:none}
           </div>
           <div class="hero-stats">
             <div class="hstat"><b>12 480</b><span>recettes</span></div>
-            <div class="hstat"><b>3 900</b><span>parfums</span></div>
+            <div class="hstat"><b id="heroPerfumes">150</b><span>parfums</span></div>
             <div class="hstat"><b>58 k</b><span>membres</span></div>
           </div>
         </div>
@@ -398,7 +421,7 @@ a{color:inherit;text-decoration:none}
             <div class="f-dose">1 spray</div>
           </div>
           <div class="blend-bar" role="img" aria-label="Fusion des deux parfums"></div>
-          <div class="blend-caption"><span>Cuiré · fumé · vanillé</span><b>Compatibilité 94 %</b></div>
+          <div class="blend-caption"><span>Cuiré · fumé · vanillé</span><b id="heroCompat">Compatibilité 94 %</b></div>
         </div>
       </div>
     </div>
@@ -422,7 +445,7 @@ a{color:inherit;text-decoration:none}
   <!-- ===== Page Parfums ===== -->
   <section class="page" id="page-parfums">
     <div class="section" style="margin-top:14px">
-      <div class="section-head"><h2>Base de <em>parfums</em></h2><span class="see-all">3 900 références</span></div>
+      <div class="section-head"><h2>Base de <em>parfums</em></h2><span class="see-all" id="perfumeCount"></span></div>
       <div class="filter-row" id="familyFilters"></div>
       <div class="perfume-grid" id="perfumeGrid"></div>
     </div>
@@ -431,7 +454,7 @@ a{color:inherit;text-decoration:none}
   <!-- ===== Page Recettes ===== -->
   <section class="page" id="page-recettes">
     <div class="section" style="margin-top:14px">
-      <div class="section-head"><h2>Recettes de la <em>communauté</em></h2><button class="btn-gold" onclick="toast('Éditeur de recette — connectez-vous pour publier')">+ Publier une recette</button></div>
+      <div class="section-head"><h2>Recettes de la <em>communauté</em></h2><button class="btn-gold" onclick="openRecipeEditor()">+ Publier une recette</button></div>
       <div class="filter-row" id="recipeFilters"></div>
       <div class="cards" id="recipeCards"></div>
     </div>
@@ -476,7 +499,7 @@ a{color:inherit;text-decoration:none}
         </div>
       </div>
       <div class="profile-stats">
-        <div class="pstat"><b>34</b><span>Recettes</span></div>
+        <div class="pstat"><b id="statRecettes">34</b><span>Recettes</span></div>
         <div class="pstat"><b>2 180</b><span>Abonnés</span></div>
         <div class="pstat"><b>12,4 k</b><span>J'aime reçus</span></div>
         <div class="pstat"><b>8 640</b><span>Score<span class="progress"><i></i></span></span></div>
@@ -528,47 +551,26 @@ a{color:inherit;text-decoration:none}
    d'affiliation (Awin / CJ / Rakuten — catalogues Sephora, Notino, Douglas…).
    Exemple : img:"https://votre-cdn.com/ombre-leather.jpg"
    Sans URL (ou si elle casse), le flacon stylisé s'affiche automatiquement. */
-const PERFUMES=[
- {id:"ombre",nom:"Ombre Leather",marque:"Tom Ford",annee:2018,famille:"Cuir",accord:"Cuir épicé",intensite:4,longevite:"8–10 h",genre:"Homme",prix:"128 €",c1:"#7A4626",c2:"#2E1C11",
-  tete:["Cardamome"],coeur:["Cuir","Jasmin sambac"],fond:["Ambre","Mousse","Patchouli"]},
- {id:"jazz",nom:"Jazz Club",marque:"Maison Margiela",annee:2013,famille:"Boisé oriental",accord:"Rhum & tabac",intensite:3,longevite:"6–8 h",genre:"Homme",prix:"135 €",c1:"#94622F",c2:"#3C2716",
-  tete:["Citron","Néroli","Poivre rose"],coeur:["Rhum","Vétiver","Bois clair"],fond:["Tabac","Vanille","Styrax"]},
- {id:"br540",nom:"Baccarat Rouge 540",marque:"Maison Francis Kurkdjian",annee:2015,famille:"Ambré floral",accord:"Safran ambré",intensite:5,longevite:"12 h+",genre:"Mixte",prix:"235 €",c1:"#B5453C",c2:"#E0A34C",
-  tete:["Safran","Jasmin"],coeur:["Ambre gris","Bois de cèdre"],fond:["Résine de sapin","Ambre"]},
- {id:"dhi",nom:"Dior Homme Intense",marque:"Dior",annee:2011,famille:"Boisé floral",accord:"Iris poudré",intensite:4,longevite:"8–10 h",genre:"Homme",prix:"115 €",c1:"#6E5E80",c2:"#241D30",
-  tete:["Lavande"],coeur:["Iris","Ambrette","Poire"],fond:["Vétiver","Cèdre de Virginie"]},
- {id:"bleu",nom:"Bleu de Chanel EDP",marque:"Chanel",annee:2014,famille:"Boisé aromatique",accord:"Frais ambré",intensite:3,longevite:"7–9 h",genre:"Homme",prix:"124 €",c1:"#2E4C6E",c2:"#101A26",
-  tete:["Agrumes","Menthe"],coeur:["Gingembre","Noix de muscade","Jasmin"],fond:["Encens","Vétiver","Cèdre"]},
- {id:"tv",nom:"Tobacco Vanille",marque:"Tom Ford",annee:2007,famille:"Oriental épicé",accord:"Tabac & vanille",intensite:5,longevite:"12 h+",genre:"Mixte",prix:"265 €",c1:"#6E4423",c2:"#26160B",
-  tete:["Feuille de tabac","Épices"],coeur:["Cacao","Fève tonka","Vanille"],fond:["Bois séché","Fruits secs"]},
- {id:"gris",nom:"Gris Charnel",marque:"BDK Parfums",annee:2019,famille:"Boisé épicé",accord:"Figue & cardamome",intensite:3,longevite:"7–9 h",genre:"Mixte",prix:"145 €",c1:"#6B6156",c2:"#26211C",
-  tete:["Cardamome","Figue","Thé noir"],coeur:["Bois de santal","Iris"],fond:["Vétiver","Fève tonka","Musc"]},
- {id:"nuit",nom:"La Nuit de L'Homme",marque:"Yves Saint Laurent",annee:2009,famille:"Oriental boisé",accord:"Cardamome suave",intensite:3,longevite:"6–8 h",genre:"Homme",prix:"98 €",c1:"#463C50",c2:"#17131C",
-  tete:["Cardamome"],coeur:["Lavande","Cèdre","Bergamote"],fond:["Vétiver","Coumarine"]},
- {id:"libre",nom:"Libre",marque:"Yves Saint Laurent",annee:2019,famille:"Floral oriental",accord:"Lavande solaire",intensite:4,longevite:"8–10 h",genre:"Femme",prix:"112 €",c1:"#D9B45A",c2:"#5E4415",
-  tete:["Mandarine","Lavande","Cassis"],coeur:["Fleur d'oranger","Jasmin"],fond:["Vanille de Madagascar","Musc","Ambre gris"]},
- {id:"fire",nom:"By the Fireplace",marque:"Maison Margiela",annee:2015,famille:"Boisé ambré",accord:"Marron grillé fumé",intensite:3,longevite:"6–8 h",genre:"Mixte",prix:"135 €",c1:"#8A4A2B",c2:"#2C170C",
-  tete:["Clou de girofle","Baies roses","Fleur d'oranger"],coeur:["Marron glacé","Bois de gaïac"],fond:["Vanille","Cachou","Accord fumé"]}
-];
+const PERFUMES=[{"id":"ombreleather","nom":"Ombre Leather","marque":"Tom Ford","annee":2018,"famille":"Cuir","accord":"Cuir épicé","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"128 €","c1":"#7A4626","c2":"#2E1C11","tete":["Cardamome"],"coeur":["Cuir","Jasmin sambac"],"fond":["Ambre","Mousse","Patchouli"]},{"id":"jazzclub","nom":"Jazz Club","marque":"Maison Margiela","annee":2013,"famille":"Boisé oriental","accord":"Rhum & tabac","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"135 €","c1":"#6E4A2E","c2":"#20120A","tete":["Citron","Néroli","Poivre rose"],"coeur":["Rhum","Vétiver","Bois clair"],"fond":["Tabac","Vanille","Styrax"]},{"id":"baccaratrouge540","nom":"Baccarat Rouge 540","marque":"Maison Francis Kurkdjian","annee":2015,"famille":"Ambré floral","accord":"Safran ambré","intensite":5,"longevite":"12 h+","genre":"Mixte","prix":"235 €","c1":"#B5453C","c2":"#3C1410","tete":["Safran","Jasmin"],"coeur":["Ambre gris","Bois de cèdre"],"fond":["Résine de sapin","Ambre"]},{"id":"diorhommeintense","nom":"Dior Homme Intense","marque":"Dior","annee":2011,"famille":"Boisé floral","accord":"Iris poudré","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"115 €","c1":"#6E5E80","c2":"#241D30","tete":["Lavande"],"coeur":["Iris","Ambrette","Poire"],"fond":["Vétiver","Cèdre de Virginie"]},{"id":"bleudechaneledp","nom":"Bleu de Chanel EDP","marque":"Chanel","annee":2014,"famille":"Boisé aromatique","accord":"Frais ambré","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"124 €","c1":"#2E4C6E","c2":"#101A26","tete":["Agrumes","Menthe"],"coeur":["Gingembre","Muscade","Jasmin"],"fond":["Encens","Vétiver","Cèdre"]},{"id":"tobaccovanille","nom":"Tobacco Vanille","marque":"Tom Ford","annee":2007,"famille":"Oriental épicé","accord":"Tabac & vanille","intensite":5,"longevite":"12 h+","genre":"Mixte","prix":"265 €","c1":"#6E4423","c2":"#26160B","tete":["Feuille de tabac","Épices"],"coeur":["Cacao","Fève tonka","Vanille"],"fond":["Bois séché","Fruits secs"]},{"id":"grischarnel","nom":"Gris Charnel","marque":"BDK Parfums","annee":2019,"famille":"Boisé épicé","accord":"Figue & cardamome","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"145 €","c1":"#6B6156","c2":"#26211C","tete":["Cardamome","Figue","Thé noir"],"coeur":["Bois de santal","Iris"],"fond":["Vétiver","Fève tonka","Musc"]},{"id":"lanuitdelhomme","nom":"La Nuit de L'Homme","marque":"Yves Saint Laurent","annee":2009,"famille":"Oriental boisé","accord":"Cardamome suave","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"98 €","c1":"#463C50","c2":"#17131C","tete":["Cardamome"],"coeur":["Lavande","Cèdre","Bergamote"],"fond":["Vétiver","Coumarine"]},{"id":"libre","nom":"Libre","marque":"Yves Saint Laurent","annee":2019,"famille":"Floral oriental","accord":"Lavande solaire","intensite":4,"longevite":"8–10 h","genre":"Femme","prix":"112 €","c1":"#B08A3B","c2":"#3C2C0E","tete":["Mandarine","Lavande","Cassis"],"coeur":["Fleur d'oranger","Jasmin"],"fond":["Vanille de Madagascar","Musc","Ambre gris"]},{"id":"bythefireplace","nom":"By the Fireplace","marque":"Maison Margiela","annee":2015,"famille":"Boisé ambré","accord":"Marron grillé fumé","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"135 €","c1":"#8A4A2B","c2":"#2C170C","tete":["Clou de girofle","Baies roses","Fleur d'oranger"],"coeur":["Marron glacé","Bois de gaïac"],"fond":["Vanille","Cachou","Accord fumé"]},{"id":"sauvageedp","nom":"Sauvage EDP","marque":"Dior","annee":2018,"famille":"Aromatique ambré","accord":"Ambroxan frais","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"115 €","c1":"#3B5A6E","c2":"#131C24","tete":["Bergamote","Poivre de Sichuan"],"coeur":["Lavande","Géranium","Ambroxan"],"fond":["Vanille","Ambre","Patchouli"]},{"id":"aventus","nom":"Aventus","marque":"Creed","annee":2010,"famille":"Chyprée fruitée","accord":"Ananas fumé","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"320 €","c1":"#6E4A2E","c2":"#241609","tete":["Ananas","Bergamote","Cassis","Pomme"],"coeur":["Bouleau","Patchouli","Rose"],"fond":["Mousse de chêne","Musc","Ambre gris","Vanille"]},{"id":"lhommeidealedp","nom":"L'Homme Idéal EDP","marque":"Guerlain","annee":2016,"famille":"Oriental boisé","accord":"Amande cuir","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"88 €","c1":"#463C50","c2":"#17131C","tete":["Amande","Romarin","Bergamote"],"coeur":["Amande amère","Cannelle"],"fond":["Cuir","Fève tonka","Vanille","Santal"]},{"id":"blackopium","nom":"Black Opium","marque":"Yves Saint Laurent","annee":2014,"famille":"Oriental vanillé","accord":"Café vanille","intensite":4,"longevite":"8–10 h","genre":"Femme","prix":"105 €","c1":"#2A1E2E","c2":"#0E0812","tete":["Poire","Poivre rose","Fleur d'oranger"],"coeur":["Café","Jasmin","Amande"],"fond":["Vanille","Patchouli","Cèdre"]},{"id":"goodgirl","nom":"Good Girl","marque":"Carolina Herrera","annee":2016,"famille":"Oriental floral","accord":"Jasmin tonka","intensite":4,"longevite":"8–10 h","genre":"Femme","prix":"98 €","c1":"#2E2A4A","c2":"#0C0A1A","tete":["Amande","Café","Bergamote"],"coeur":["Jasmin sambac","Tubéreuse"],"fond":["Fève tonka","Cacao","Vanille","Praliné"]},{"id":"lavieestbelle","nom":"La Vie Est Belle","marque":"Lancôme","annee":2012,"famille":"Gourmand floral","accord":"Iris praliné","intensite":3,"longevite":"7–9 h","genre":"Femme","prix":"95 €","c1":"#8E5A6E","c2":"#2C1620","tete":["Cassis","Poire"],"coeur":["Iris","Jasmin","Fleur d'oranger"],"fond":["Praliné","Vanille","Patchouli","Fève tonka"]},{"id":"ombrenomade","nom":"Ombré Nomade","marque":"Louis Vuitton","annee":2018,"famille":"Boisé oriental","accord":"Oud framboise","intensite":5,"longevite":"12 h+","genre":"Mixte","prix":"350 €","c1":"#6E4A2E","c2":"#20120A","tete":["Framboise","Bergamote"],"coeur":["Oud","Rose","Encens"],"fond":["Ambre","Bois de gaïac","Benjoin"]},{"id":"si","nom":"Sì","marque":"Giorgio Armani","annee":2013,"famille":"Chyprée fruitée","accord":"Cassis vanillé","intensite":3,"longevite":"7–9 h","genre":"Femme","prix":"102 €","c1":"#6E4A2E","c2":"#241609","tete":["Cassis","Mandarine"],"coeur":["Rose","Néroli","Freesia"],"fond":["Vanille","Patchouli","Musc blanc","Ambre"]},{"id":"terredhermes","nom":"Terre d'Hermès","marque":"Hermès","annee":2006,"famille":"Boisé épicé","accord":"Vétiver minéral","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"92 €","c1":"#6B6156","c2":"#26211C","tete":["Orange","Pamplemousse","Poivre"],"coeur":["Poivre","Géranium","Silex"],"fond":["Vétiver","Cèdre","Benjoin"]},{"id":"myslf","nom":"MYSLF","marque":"Yves Saint Laurent","annee":2023,"famille":"Floral musqué","accord":"Fleur d'oranger boisée","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"108 €","c1":"#4A5A3B","c2":"#141A0E","tete":["Fleur d'oranger","Bergamote"],"coeur":["Fleur d'oranger","Muguet"],"fond":["Ambrette","Bois patchouli","Musc"]},{"id":"bleudechanelparfum","nom":"Bleu de Chanel Parfum","marque":"Chanel","annee":2018,"famille":"Boisé aromatique","accord":"Santal ambré","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"135 €","c1":"#2E4C6E","c2":"#101A26","tete":["Agrumes","Lavande"],"coeur":["Gingembre","Fève tonka"],"fond":["Santal","Cèdre","Encens","Vanille"]},{"id":"jadoreedp","nom":"J'adore EDP","marque":"Dior","annee":1999,"famille":"Floral fruité","accord":"Ylang jasmin","intensite":3,"longevite":"7–9 h","genre":"Femme","prix":"112 €","c1":"#B08A3B","c2":"#3C2C0E","tete":["Poire","Melon","Magnolia"],"coeur":["Jasmin","Rose","Ylang-ylang"],"fond":["Musc","Vanille","Mûre","Cèdre"]},{"id":"phantom","nom":"Phantom","marque":"Paco Rabanne","annee":2021,"famille":"Aromatique fougère","accord":"Lavande vanille","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"78 €","c1":"#3B4A5A","c2":"#0E1620","tete":["Citron","Lavande"],"coeur":["Lavande","Accord miel"],"fond":["Vanille","Patchouli","Bois"]},{"id":"strongerwithyouintense","nom":"Stronger With You Intensely","marque":"Emporio Armani","annee":2019,"famille":"Oriental vanillé","accord":"Châtaigne vanille","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"82 €","c1":"#2A1E2E","c2":"#0E0812","tete":["Cardamome","Rose","Violette"],"coeur":["Châtaigne glacée","Sauge"],"fond":["Vanille","Fève tonka","Ambre","Suède"]},{"id":"santaldeparis","nom":"Santal de Paris","marque":"Place de la Rêverie","annee":2022,"famille":"Oriental boisé","accord":"Santal poudré vanillé","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"115 €","c1":"#463C50","c2":"#17131C","tete":["Lys","Amyris","Notes poudrées"],"coeur":["Ambrette","Ambroxan","Santal de Mysore"],"fond":["Vanille","Benjoin","Ambre","Ciste"]},{"id":"akatsukimelba","nom":"Akatsuki Melba","marque":"Fomowa Paris","annee":2025,"famille":"Gourmand fruité","accord":"Pêche caramel","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"120 €","c1":"#8E3B5A","c2":"#280E1A","tete":["Pêche Akatsuki","Osmanthus"],"coeur":["Cassis","Framboise givrée"],"fond":["Caramel beurre salé","Vanille de Tahiti","Fève tonka","Ambroxan"]},{"id":"santal33","nom":"Santal 33","marque":"Le Labo","annee":2011,"famille":"Boisé aromatique","accord":"Santal cuir","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"215 €","c1":"#2E4C6E","c2":"#101A26","tete":["Cardamome","Iris","Violette"],"coeur":["Bois de santal","Papyrus"],"fond":["Cuir","Ambrox","Cèdre","Musc"]},{"id":"another13","nom":"Another 13","marque":"Le Labo","annee":2010,"famille":"Musqué ambré","accord":"Musc ambrox","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"215 €","c1":"#8E8478","c2":"#2C2820","tete":["Ambrox","Notes aldéhydées"],"coeur":["Jasmin","Ambrette"],"fond":["Musc blanc","Ambre gris","Cèdre"]},{"id":"br540extrait","nom":"BR540 Extrait","marque":"Maison Francis Kurkdjian","annee":2017,"famille":"Ambré boisé","accord":"Safran résineux","intensite":5,"longevite":"12 h+","genre":"Mixte","prix":"340 €","c1":"#9A3A34","c2":"#2C0A0A","tete":["Safran","Jasmin"],"coeur":["Ambre gris","Cèdre"],"fond":["Résine de sapin","Bouleau"]},{"id":"grandsoir","nom":"Grand Soir","marque":"Maison Francis Kurkdjian","annee":2016,"famille":"Ambré","accord":"Ambre benjoin","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"230 €","c1":"#8E5A24","c2":"#2C1806","tete":["Lavande","Cannelle"],"coeur":["Benjoin","Ambre"],"fond":["Vanille","Fève tonka","Cèdre"]},{"id":"delina","nom":"Delina","marque":"Parfums de Marly","annee":2017,"famille":"Floral fruité","accord":"Rose litchi","intensite":4,"longevite":"8–10 h","genre":"Femme","prix":"175 €","c1":"#B08A3B","c2":"#3C2C0E","tete":["Litchi","Rhubarbe","Bergamote"],"coeur":["Rose turque","Pivoine","Muguet"],"fond":["Vanille","Musc","Cachemire","Encens"]},{"id":"layton","nom":"Layton","marque":"Parfums de Marly","annee":2016,"famille":"Oriental floral","accord":"Pomme vanille","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"205 €","c1":"#2E2A4A","c2":"#0C0A1A","tete":["Pomme","Bergamote","Lavande","Mandarine"],"coeur":["Géranium","Violette","Jasmin"],"fond":["Vanille","Santal","Poivre","Cardamome"]},{"id":"pegasus","nom":"Pegasus","marque":"Parfums de Marly","annee":2011,"famille":"Floral oriental","accord":"Amande héliotrope","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"205 €","c1":"#B08A3B","c2":"#3C2C0E","tete":["Amande amère","Bergamote"],"coeur":["Héliotrope","Jasmin"],"fond":["Vanille","Santal","Fève tonka"]},{"id":"oudsatinmood","nom":"Oud Satin Mood","marque":"Maison Francis Kurkdjian","annee":2015,"famille":"Ambré floral","accord":"Rose oud violette","intensite":5,"longevite":"12 h+","genre":"Mixte","prix":"340 €","c1":"#B5453C","c2":"#3C1410","tete":["Violette","Rose de Mai"],"coeur":["Oud","Rose de Bulgarie"],"fond":["Vanille","Ambre","Benjoin"]},{"id":"herod","nom":"Herod","marque":"Parfums de Marly","annee":2012,"famille":"Oriental épicé","accord":"Tabac vanille","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"205 €","c1":"#6E4423","c2":"#26160B","tete":["Cannelle","Poivre","Osmanthus"],"coeur":["Tabac","Gaïac"],"fond":["Vanille","Cèdre","Fève tonka"]},{"id":"reflectionman","nom":"Reflection Man","marque":"Amouage","annee":2007,"famille":"Boisé floral","accord":"Jasmin cardamome","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"290 €","c1":"#6E5E80","c2":"#241D30","tete":["Romarin","Poivre rose","Bergamote"],"coeur":["Jasmin","Néroli","Freesia"],"fond":["Santal","Cèdre","Vétiver","Patchouli"]},{"id":"interludeman","nom":"Interlude Man","marque":"Amouage","annee":2012,"famille":"Oriental épicé","accord":"Encens ambré","intensite":5,"longevite":"12 h+","genre":"Homme","prix":"290 €","c1":"#6E4423","c2":"#26160B","tete":["Bergamote","Origan","Poivre"],"coeur":["Encens","Opoponax","Cuir"],"fond":["Ambre","Patchouli","Mousse de chêne"]},{"id":"tobaccooud","nom":"Tobacco Oud","marque":"Tom Ford","annee":2013,"famille":"Boisé oriental","accord":"Tabac épices oud","intensite":5,"longevite":"12 h+","genre":"Mixte","prix":"290 €","c1":"#6E4A2E","c2":"#20120A","tete":["Épices","Poivre rose"],"coeur":["Tabac","Oud","Bois de santal"],"fond":["Encens","Cacao","Vanille"]},{"id":"lostcherry","nom":"Lost Cherry","marque":"Tom Ford","annee":2018,"famille":"Gourmand fruité","accord":"Cerise amande","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"290 €","c1":"#8E3B5A","c2":"#280E1A","tete":["Cerise noire","Liqueur de cerise","Amande amère"],"coeur":["Rose de Turquie","Jasmin"],"fond":["Fève tonka","Vanille","Santal","Baume du Pérou"]},{"id":"fingfabulous","nom":"F***ing Fabulous","marque":"Tom Ford","annee":2017,"famille":"Cuir aromatique","accord":"Cuir amande","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"320 €","c1":"#4A423A","c2":"#161210","tete":["Lavande","Sauge","Amande amère"],"coeur":["Cuir","Iris","Fève tonka"],"fond":["Ambre","Bois","Vanille"]},{"id":"silvermountainwater","nom":"Silver Mountain Water","marque":"Creed","annee":1995,"famille":"Chyprée fraîche","accord":"Thé musc","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"250 €","c1":"#5A6E7A","c2":"#161E24","tete":["Bergamote","Mandarine"],"coeur":["Thé vert","Cassis"],"fond":["Musc","Santal","Galbanum"]},{"id":"greenirishtweed","nom":"Green Irish Tweed","marque":"Creed","annee":1985,"famille":"Aromatique boisé","accord":"Violette vétiver","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"250 €","c1":"#4A5A3B","c2":"#141A0E","tete":["Citron vert","Verveine"],"coeur":["Feuille de violette","Iris"],"fond":["Santal","Ambre gris"]},{"id":"hacivat","nom":"Hacivat","marque":"Nishane","annee":2017,"famille":"Chyprée fruitée","accord":"Ananas patchouli","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"185 €","c1":"#6E4A2E","c2":"#241609","tete":["Ananas","Bergamote","Pamplemousse"],"coeur":["Bois","Iris","Jasmin"],"fond":["Patchouli","Mousse de chêne","Cèdre"]},{"id":"clubdenuitintense","nom":"Club de Nuit Intense","marque":"Armaf","annee":2015,"famille":"Chyprée fruitée","accord":"Ananas fumé","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"38 €","c1":"#6E4A2E","c2":"#241609","tete":["Ananas","Citron","Cassis","Bergamote"],"coeur":["Bouleau","Jasmin"],"fond":["Mousse de chêne","Vanille","Musc","Ambre gris"]},{"id":"naxos","nom":"Naxos","marque":"Xerjoff","annee":2015,"famille":"Oriental fougère","accord":"Miel tabac","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"280 €","c1":"#8E6A2E","c2":"#2C1E08","tete":["Bergamote","Lavande","Citron"],"coeur":["Miel","Cannelle","Tabac"],"fond":["Fève tonka","Vanille","Miel"]},{"id":"kirke","nom":"Kirke","marque":"Tiziana Terenzi","annee":2013,"famille":"Gourmand fruité","accord":"Fruit de la passion","intensite":4,"longevite":"8–10 h","genre":"Femme","prix":"185 €","c1":"#8E3B5A","c2":"#280E1A","tete":["Fruit de la passion","Cassis","Pêche","Bergamote"],"coeur":["Jasmin","Muguet"],"fond":["Musc","Santal","Vanille","Mousse de chêne"]},{"id":"missdioredp","nom":"Miss Dior EDP","marque":"Dior","annee":2021,"famille":"Floral chypré","accord":"Rose pivoine","intensite":3,"longevite":"7–9 h","genre":"Femme","prix":"115 €","c1":"#B0506E","c2":"#340E1C","tete":["Rose de Grasse","Bergamote"],"coeur":["Rose","Pivoine","Iris"],"fond":["Musc blanc","Bois"]},{"id":"khamrah","nom":"Khamrah","marque":"Lattafa","annee":2022,"famille":"Oriental épicé","accord":"Dattes cannelle","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"35 €","c1":"#6E4423","c2":"#26160B","tete":["Cannelle","Muscade","Bergamote"],"coeur":["Dattes","Praliné","Tubéreuse"],"fond":["Vanille","Fève tonka","Benjoin","Myrrhe"]},{"id":"biancolatte","nom":"Bianco Latte","marque":"Giardini di Toscana","annee":2019,"famille":"Gourmand vanillé","accord":"Caramel lacté","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"165 €","c1":"#C89A5A","c2":"#3C2810","tete":["Caramel"],"coeur":["Miel","Coumarine"],"fond":["Vanille","Musc blanc"]},{"id":"vanilla28","nom":"Vanilla 28","marque":"Kayali","annee":2018,"famille":"Oriental vanillé","accord":"Vanille sucre brun","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"128 €","c1":"#2A1E2E","c2":"#0E0812","tete":["Orchidée vanille","Jasmin"],"coeur":["Sucre brun","Fève tonka"],"fond":["Ambre","Ambrox","Musc","Patchouli"]},{"id":"missingperson","nom":"Missing Person","marque":"Phlur","annee":2022,"famille":"Floral musqué boisé","accord":"Musc peau nue","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"105 €","c1":"#C8B4A8","c2":"#3C302A","tete":["Musc","Jasmin","Bergamote"],"coeur":["Cyclamen","Néroli","Fleur d'oranger"],"fond":["Musc blanc","Santal d'Australie","Bois blanc"]},{"id":"oudparadisio","nom":"Oud Paradisio","marque":"BDK Parfums","annee":2025,"famille":"Boisé oriental","accord":"Oud lumineux","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"195 €","c1":"#6E4A2E","c2":"#20120A","tete":["Bergamote","Safran","Poivre rose"],"coeur":["Oud","Rose","Bois de santal"],"fond":["Ambre","Patchouli","Vanille"]},{"id":"erbapura","nom":"Erba Pura","marque":"Xerjoff (Sospiro)","annee":2011,"famille":"Fruité ambré","accord":"Fruits ambrés","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"185 €","c1":"#C46A3A","c2":"#3C1A0C","tete":["Orange","Citron","Fruits exotiques"],"coeur":["Fruits blancs","Fleurs"],"fond":["Vanille","Musc blanc","Ambre"]},{"id":"angelsshare","nom":"Angels' Share","marque":"By Kilian","annee":2020,"famille":"Gourmand boisé","accord":"Cognac cannelle","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"245 €","c1":"#8E4A24","c2":"#2A1206","tete":["Cognac"],"coeur":["Cannelle","Fève tonka","Praline"],"fond":["Chêne","Vanille","Bois de santal"]},{"id":"cloud","nom":"Cloud","marque":"Ariana Grande","annee":2018,"famille":"Gourmand floral","accord":"Praliné lavande","intensite":3,"longevite":"7–9 h","genre":"Femme","prix":"55 €","c1":"#8E5A6E","c2":"#2C1620","tete":["Lavande","Poire","Bergamote"],"coeur":["Crème fouettée","Praliné"],"fond":["Musc","Mousse de bois","Vanille"]},{"id":"burberryher","nom":"Burberry Her","marque":"Burberry","annee":2018,"famille":"Gourmand fruité","accord":"Baies rouges musc","intensite":3,"longevite":"7–9 h","genre":"Femme","prix":"92 €","c1":"#8E3B5A","c2":"#280E1A","tete":["Cassis","Framboise","Mûre"],"coeur":["Jasmin","Violette"],"fond":["Musc","Ambre","Bois de santal","Fève tonka"]},{"id":"borninromadonna","nom":"Born in Roma Donna","marque":"Valentino","annee":2019,"famille":"Floral vanillé","accord":"Vanille bourbon","intensite":4,"longevite":"8–10 h","genre":"Femme","prix":"115 €","c1":"#4A3B6E","c2":"#140E24","tete":["Bergamote","Notes fruitées"],"coeur":["Jasmin sambac","Fleur de bourbon"],"fond":["Vanille bourbon","Bois de cachemire","Musc"]},{"id":"scandal","nom":"Scandal","marque":"Jean Paul Gaultier","annee":2017,"famille":"Chyprée gourmande","accord":"Miel patchouli","intensite":4,"longevite":"8–10 h","genre":"Femme","prix":"98 €","c1":"#B0844A","c2":"#342410","tete":["Orange sanguine","Mandarine"],"coeur":["Miel","Fleur d'oranger","Gardénia"],"fond":["Caramel","Patchouli","Bois"]},{"id":"nightcap","nom":"Nightcap","marque":"Ôrəbella","annee":2024,"famille":"Ambré floral","accord":"Musc solaire","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"75 €","c1":"#B5453C","c2":"#3C1410","tete":["Bergamote","Notes solaires"],"coeur":["Néroli","Fleur d'oranger"],"fond":["Ambre","Musc","Bois blond"]},{"id":"sauvageelixir","nom":"Sauvage Elixir","marque":"Dior","annee":2021,"famille":"Ambré épicé","accord":"Épices réglisse","intensite":5,"longevite":"12 h+","genre":"Homme","prix":"145 €","c1":"#8E5A2E","c2":"#2C1A0C","tete":["Cannelle","Muscade","Cardamome","Réglisse"],"coeur":["Lavande","Bois de réglisse"],"fond":["Santal","Patchouli","Ambre"]},{"id":"yedp","nom":"Y EDP","marque":"Yves Saint Laurent","annee":2018,"famille":"Aromatique","accord":"Sauge ambre","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"95 €","c1":"#3B5A4A","c2":"#0E1A14","tete":["Bergamote","Gingembre","Sauge"],"coeur":["Sauge sclarée","Géranium"],"fond":["Ambre","Fève tonka","Cèdre","Vétiver"]},{"id":"lemaleleparfum","nom":"Le Male Le Parfum","marque":"Jean Paul Gaultier","annee":2020,"famille":"Oriental vanillé","accord":"Cardamome vanille","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"90 €","c1":"#2A1E2E","c2":"#0E0812","tete":["Cardamome"],"coeur":["Lavande"],"fond":["Vanille","Bois ambrés"]},{"id":"1million","nom":"1 Million","marque":"Paco Rabanne","annee":2008,"famille":"Boisé épicé","accord":"Cuir cannelle","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"78 €","c1":"#6B6156","c2":"#26211C","tete":["Pamplemousse","Menthe","Mandarine"],"coeur":["Rose","Cannelle","Épices"],"fond":["Cuir","Ambre","Patchouli"]},{"id":"invictus","nom":"Invictus","marque":"Paco Rabanne","annee":2013,"famille":"Aquatique","accord":"Marin boisé","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"75 €","c1":"#2E6E8E","c2":"#0A2430","tete":["Pamplemousse","Note marine"],"coeur":["Feuille de laurier","Jasmin"],"fond":["Ambre gris","Bois de gaïac","Mousse de chêne"]},{"id":"acquadigioprofumo","nom":"Acqua di Giò Profumo","marque":"Giorgio Armani","annee":2015,"famille":"Aromatique aquatique","accord":"Encens marin","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"98 €","c1":"#2E6E8E","c2":"#0A2430","tete":["Bergamote","Note marine"],"coeur":["Géranium","Sauge","Romarin"],"fond":["Encens","Patchouli"]},{"id":"eros","nom":"Eros","marque":"Versace","annee":2012,"famille":"Aromatique fougère","accord":"Menthe vanille","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"82 €","c1":"#3B4A5A","c2":"#0E1620","tete":["Menthe","Pomme verte","Citron"],"coeur":["Fève tonka","Ambroxan","Géranium"],"fond":["Vanille","Vétiver","Cèdre","Mousse de chêne"]},{"id":"dylanblue","nom":"Dylan Blue","marque":"Versace","annee":2016,"famille":"Aromatique","accord":"Ambroxan aquatique","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"78 €","c1":"#3B5A4A","c2":"#0E1A14","tete":["Bergamote","Pamplemousse","Notes aquatiques"],"coeur":["Papyrus","Violette","Poivre"],"fond":["Musc","Encens","Ambre","Patchouli"]},{"id":"theone","nom":"The One","marque":"Dolce & Gabbana","annee":2015,"famille":"Oriental épicé","accord":"Tabac ambré","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"85 €","c1":"#6E4423","c2":"#26160B","tete":["Pamplemousse","Coriandre","Basilic"],"coeur":["Cardamome","Gingembre","Fleur d'oranger"],"fond":["Tabac","Ambre","Cèdre"]},{"id":"spicebombextreme","nom":"Spicebomb Extreme","marque":"Viktor&Rolf","annee":2015,"famille":"Oriental épicé","accord":"Tabac cannelle","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"95 €","c1":"#6E4423","c2":"#26160B","tete":["Poivre","Lavande"],"coeur":["Cannelle","Tabac","Cumin"],"fond":["Vanille","Tabac","Bois"]},{"id":"badboy","nom":"Bad Boy","marque":"Carolina Herrera","annee":2019,"famille":"Aromatique","accord":"Cacao poivre","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"88 €","c1":"#3B5A4A","c2":"#0E1A14","tete":["Poivre blanc","Bergamote","Sauge"],"coeur":["Cacao","Cèdre"],"fond":["Fève tonka","Ambre","Cuir"]},{"id":"ultramale","nom":"Ultra Male","marque":"Jean Paul Gaultier","annee":2015,"famille":"Aromatique fruité","accord":"Poire lavande","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"80 €","c1":"#5A6E3B","c2":"#1A200E","tete":["Poire","Bergamote","Menthe"],"coeur":["Lavande","Cannelle","Fleur d'oranger"],"fond":["Vanille","Ambre","Bois de santal"]},{"id":"explorer","nom":"Explorer","marque":"Montblanc","annee":2019,"famille":"Boisé chyprée","accord":"Vétiver patchouli","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"70 €","c1":"#6E5A3B","c2":"#201A0E","tete":["Bergamote","Poivre rose","Feuille de clémentier"],"coeur":["Vétiver haïtien","Cuir"],"fond":["Patchouli","Ambroxan","Akigalawood"]},{"id":"pradalhomme","nom":"Prada L'Homme","marque":"Prada","annee":2016,"famille":"Aromatique poudré","accord":"Iris néroli","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"92 €","c1":"#8E7A9A","c2":"#28202E","tete":["Néroli","Poivre","Cardamome"],"coeur":["Iris","Géranium","Muguet"],"fond":["Ambre","Patchouli","Santal","Cèdre"]},{"id":"kbydolcegabbana","nom":"K by Dolce & Gabbana","marque":"Dolce & Gabbana","annee":2019,"famille":"Aromatique fougère","accord":"Genièvre bois","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"80 €","c1":"#3B4A5A","c2":"#0E1620","tete":["Citron","Mandarine","Genièvre"],"coeur":["Sauge","Géranium","Pimenta"],"fond":["Cèdre","Vétiver","Patchouli"]},{"id":"bossbottled","nom":"Boss Bottled","marque":"Hugo Boss","annee":1998,"famille":"Boisé épicé","accord":"Pomme cannelle","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"70 €","c1":"#6B6156","c2":"#26211C","tete":["Pomme","Bergamote","Citron"],"coeur":["Cannelle","Géranium","Œillet"],"fond":["Santal","Cèdre","Vanille","Mousse"]},{"id":"fahrenheit","nom":"Fahrenheit","marque":"Dior","annee":1988,"famille":"Boisé cuir","accord":"Violette essence","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"95 €","c1":"#5A463A","c2":"#1A1410","tete":["Mandarine","Aubépine","Muscade"],"coeur":["Violette","Muguet","Chèvrefeuille"],"fond":["Cuir","Vétiver","Musc","Ambre"]},{"id":"cocomademoiselle","nom":"Coco Mademoiselle","marque":"Chanel","annee":2001,"famille":"Chyprée fruitée","accord":"Patchouli rose","intensite":3,"longevite":"7–9 h","genre":"Femme","prix":"115 €","c1":"#6E4A2E","c2":"#241609","tete":["Orange","Bergamote","Mandarine"],"coeur":["Rose","Litchi","Jasmin"],"fond":["Patchouli","Vétiver","Vanille","Musc"]},{"id":"chanceeautendre","nom":"Chance Eau Tendre","marque":"Chanel","annee":2010,"famille":"Floral fruité","accord":"Pamplemousse rose","intensite":3,"longevite":"7–9 h","genre":"Femme","prix":"110 €","c1":"#B08A3B","c2":"#3C2C0E","tete":["Pamplemousse","Coing"],"coeur":["Jacinthe","Jasmin","Rose"],"fond":["Musc blanc","Bois de cèdre"]},{"id":"flowerbomb","nom":"Flowerbomb","marque":"Viktor&Rolf","annee":2005,"famille":"Floral oriental","accord":"Bouquet sucré","intensite":4,"longevite":"8–10 h","genre":"Femme","prix":"105 €","c1":"#B08A3B","c2":"#3C2C0E","tete":["Thé","Bergamote","Osmanthus"],"coeur":["Jasmin","Rose","Orchidée","Freesia"],"fond":["Patchouli","Musc","Vanille"]},{"id":"idole","nom":"Idôle","marque":"Lancôme","annee":2019,"famille":"Floral chypré","accord":"Rose musc propre","intensite":3,"longevite":"7–9 h","genre":"Femme","prix":"98 €","c1":"#B0506E","c2":"#340E1C","tete":["Poire","Bergamote","Rose"],"coeur":["Rose","Jasmin"],"fond":["Musc blanc","Vanille","Bois de cèdre"]},{"id":"monguerlain","nom":"Mon Guerlain","marque":"Guerlain","annee":2017,"famille":"Ambré floral","accord":"Lavande vanille","intensite":3,"longevite":"7–9 h","genre":"Femme","prix":"105 €","c1":"#B5453C","c2":"#3C1410","tete":["Lavande","Bergamote"],"coeur":["Jasmin sambac","Néroli"],"fond":["Vanille","Iris","Santal"]},{"id":"gabrielle","nom":"Gabrielle","marque":"Chanel","annee":2017,"famille":"Floral","accord":"Fleurs blanches solaires","intensite":3,"longevite":"7–9 h","genre":"Femme","prix":"120 €","c1":"#B06E8A","c2":"#341E28","tete":["Mandarine","Cassis","Bergamote"],"coeur":["Jasmin","Ylang-ylang","Fleur d'oranger","Tubéreuse"],"fond":["Santal","Musc"]},{"id":"alien","nom":"Alien","marque":"Mugler","annee":2005,"famille":"Floral boisé ambré","accord":"Jasmin bois d'ambre","intensite":4,"longevite":"8–10 h","genre":"Femme","prix":"98 €","c1":"#9A6E5A","c2":"#2C1E16","tete":["Jasmin sambac"],"coeur":["Bois de cachemire","Ambre"],"fond":["Ambre","Bois précieux","Musc"]},{"id":"angel","nom":"Angel","marque":"Mugler","annee":1992,"famille":"Gourmand oriental","accord":"Praline patchouli","intensite":5,"longevite":"12 h+","genre":"Femme","prix":"95 €","c1":"#8E4A3B","c2":"#2A120C","tete":["Bergamote","Notes fraîches"],"coeur":["Praline","Miel","Fruits rouges","Caramel"],"fond":["Patchouli","Vanille","Chocolat"]},{"id":"yara","nom":"Yara","marque":"Lattafa","annee":2020,"famille":"Floral fruité gourmand","accord":"Orchidée héliotrope","intensite":4,"longevite":"8–10 h","genre":"Femme","prix":"30 €","c1":"#B0506E","c2":"#340E1C","tete":["Orchidée","Tubéreuse","Fruits tropicaux"],"coeur":["Héliotrope","Jasmin"],"fond":["Vanille","Musc","Bois de santal"]},{"id":"anaabiyedhrouge","nom":"Ana Abiyedh Rouge","marque":"Lattafa","annee":2020,"famille":"Floral fruité","accord":"Rose litchi (dupe Delina)","intensite":4,"longevite":"8–10 h","genre":"Femme","prix":"30 €","c1":"#B08A3B","c2":"#3C2C0E","tete":["Litchi","Rhubarbe","Bergamote"],"coeur":["Rose","Pivoine","Muguet"],"fond":["Vanille","Musc","Encens"]},{"id":"asad","nom":"Asad","marque":"Lattafa","annee":2021,"famille":"Boisé épicé","accord":"Café ambré (dupe Sauvage)","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"30 €","c1":"#6B6156","c2":"#26211C","tete":["Poivre","Bergamote","Pamplemousse"],"coeur":["Café","Lavande","Genièvre"],"fond":["Ambroxan","Patchouli","Cèdre"]},{"id":"fakhar","nom":"Fakhar","marque":"Lattafa","annee":2021,"famille":"Aromatique fougère","accord":"Ananas frais","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"30 €","c1":"#3B4A5A","c2":"#0E1620","tete":["Ananas","Pomme","Bergamote"],"coeur":["Rose","Muguet","Freesia"],"fond":["Vanille","Patchouli","Ambre","Musc"]},{"id":"biancolatteintense","nom":"Bianco Latte Intense","marque":"Giardini di Toscana","annee":2023,"famille":"Gourmand vanillé","accord":"Caramel intense","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"175 €","c1":"#C89A5A","c2":"#3C2810","tete":["Caramel"],"coeur":["Miel","Coumarine","Amande"],"fond":["Vanille","Musc blanc","Bois"]},{"id":"baccaratrouge540edp","nom":"Baccarat Rouge 540 EDP","marque":"Maison Francis Kurkdjian","annee":2016,"famille":"Ambré floral","accord":"Safran jasmin","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"235 €","c1":"#B5453C","c2":"#3C1410","tete":["Safran","Jasmin"],"coeur":["Ambre gris","Cèdre"],"fond":["Résine de sapin","Ambre"]},{"id":"gentlefluiditygold","nom":"Gentle Fluidity Gold","marque":"Maison Francis Kurkdjian","annee":2019,"famille":"Ambré épicé","accord":"Muscade vanille","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"235 €","c1":"#8E5A2E","c2":"#2C1A0C","tete":["Genièvre","Muscade","Coriandre"],"coeur":["Ambre","Vanille"],"fond":["Musc","Bois"]},{"id":"aquauniversalis","nom":"Aqua Universalis","marque":"Maison Francis Kurkdjian","annee":2009,"famille":"Citrus aromatique","accord":"Agrumes propres","intensite":2,"longevite":"5–7 h","genre":"Mixte","prix":"195 €","c1":"#B0A83B","c2":"#2C2A0C","tete":["Bergamote","Citron","Lily"],"coeur":["Muguet","Fleur d'oranger"],"fond":["Musc blanc","Bois"]},{"id":"thetragedyoflordgeorge","nom":"The Tragedy of Lord George","marque":"Penhaligon's","annee":2015,"famille":"Ambré boisé","accord":"Rhum brandy","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"215 €","c1":"#9A3A34","c2":"#2C0A0A","tete":["Brandy","Cannelle","Piment"],"coeur":["Miel","Bois de gaïac","Ambre"],"fond":["Fève tonka","Cuir","Tabac"]},{"id":"halfeti","nom":"Halfeti","marque":"Penhaligon's","annee":2015,"famille":"Oriental épicé","accord":"Cuir safran","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"240 €","c1":"#6E4423","c2":"#26160B","tete":["Bergamote","Poivre","Safran"],"coeur":["Rose","Cardamome","Cèdre"],"fond":["Cuir","Oud","Ambre","Santal"]},{"id":"vanillefatale","nom":"Vanille Fatale","marque":"Mancera","annee":2020,"famille":"Gourmand vanillé","accord":"Vanille noire","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"130 €","c1":"#C89A5A","c2":"#3C2810","tete":["Vanille","Épices"],"coeur":["Bois","Fleurs"],"fond":["Vanille bourbon","Ambre","Musc"]},{"id":"cedratboise","nom":"Cedrat Boise","marque":"Mancera","annee":2011,"famille":"Boisé fruité","accord":"Cédrat vanille","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"120 €","c1":"#8E5A3B","c2":"#2A1810","tete":["Cédrat","Citron","Bergamote"],"coeur":["Cuir","Bois","Épices"],"fond":["Vanille","Musc","Ambre gris","Patchouli"]},{"id":"soleilblanc","nom":"Soleil Blanc","marque":"Tom Ford","annee":2016,"famille":"Ambré floral","accord":"Monoï solaire","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"255 €","c1":"#B5453C","c2":"#3C1410","tete":["Bergamote","Cardamome","Pistache"],"coeur":["Tubéreuse","Fleur d'oranger","Ylang-ylang"],"fond":["Coco","Ambre","Benjoin","Musc"]},{"id":"neroliportofino","nom":"Neroli Portofino","marque":"Tom Ford","annee":2011,"famille":"Citrus aromatique","accord":"Néroli méditerranéen","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"255 €","c1":"#B0A83B","c2":"#2C2A0C","tete":["Bergamote","Mandarine","Citron"],"coeur":["Néroli","Lavande","Romarin"],"fond":["Ambre","Ambrette","Musc"]},{"id":"oudwood","nom":"Oud Wood","marque":"Tom Ford","annee":2007,"famille":"Boisé oriental","accord":"Oud santal doux","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"270 €","c1":"#6E4A2E","c2":"#20120A","tete":["Oud","Palissandre","Cardamome"],"coeur":["Bois de santal","Vétiver"],"fond":["Fève tonka","Vanille","Ambre"]},{"id":"boisdargent","nom":"Bois d'Argent","marque":"Dior","annee":2004,"famille":"Boisé ambré","accord":"Iris myrrhe","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"250 €","c1":"#8A4A2B","c2":"#2C170C","tete":["Iris","Encens"],"coeur":["Myrrhe","Miel"],"fond":["Bois","Ambre","Cuir"]},{"id":"portraitofalady","nom":"Portrait of a Lady","marque":"Frédéric Malle","annee":2010,"famille":"Chyprée rosé","accord":"Rose patchouli","intensite":5,"longevite":"12 h+","genre":"Femme","prix":"290 €","c1":"#9A3B5A","c2":"#2C0E1A","tete":["Rose","Cassis","Framboise"],"coeur":["Patchouli","Encens","Cannelle"],"fond":["Santal","Ambre","Musc","Benjoin"]},{"id":"muscravageur","nom":"Musc Ravageur","marque":"Frédéric Malle","annee":2000,"famille":"Oriental épicé","accord":"Musc cannelle","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"270 €","c1":"#6E4423","c2":"#26160B","tete":["Bergamote","Mandarine","Lavande"],"coeur":["Cannelle","Girofle","Gaïac"],"fond":["Vanille","Ambre","Musc","Santal"]},{"id":"aventusforher","nom":"Aventus for Her","marque":"Creed","annee":2016,"famille":"Chyprée fruitée","accord":"Rose cassis","intensite":3,"longevite":"7–9 h","genre":"Femme","prix":"320 €","c1":"#6E4A2E","c2":"#241609","tete":["Cassis","Citron vert","Pomme verte"],"coeur":["Rose","Iris","Musc"],"fond":["Bois de santal","Mousse de chêne","Ylang-ylang"]},{"id":"woodsageseasalt","nom":"Wood Sage & Sea Salt","marque":"Jo Malone","annee":2014,"famille":"Aromatique","accord":"Sel marin sauge","intensite":2,"longevite":"5–7 h","genre":"Mixte","prix":"130 €","c1":"#3B5A4A","c2":"#0E1A14","tete":["Ambrette","Note marine"],"coeur":["Sauge","Sel de mer"],"fond":["Bois","Ambroxan"]},{"id":"englishpearfreesia","nom":"English Pear & Freesia","marque":"Jo Malone","annee":2010,"famille":"Fruité floral","accord":"Poire freesia","intensite":2,"longevite":"5–7 h","genre":"Femme","prix":"130 €","c1":"#B0844A","c2":"#342410","tete":["Poire","Melon"],"coeur":["Freesia","Rose"],"fond":["Patchouli","Ambre","Musc"]},{"id":"roseprick","nom":"Rose Prick","marque":"Tom Ford","annee":2020,"famille":"Floral épicé","accord":"Rose épicée","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"320 €","c1":"#9A4A5A","c2":"#2C121A","tete":["Rose de Turquie","Rose de Bulgarie"],"coeur":["Rose sichuan","Poivre"],"fond":["Patchouli","Santal","Fève tonka"]},{"id":"tihota","nom":"Tihota","marque":"Indult","annee":2007,"famille":"Gourmand vanillé","accord":"Vanille pure","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"210 €","c1":"#C89A5A","c2":"#3C2810","tete":["Vanille"],"coeur":["Vanille de Madagascar","Musc"],"fond":["Musc blanc","Vanille"]},{"id":"vanillavibes","nom":"Vanilla Vibes","marque":"Kayali","annee":2021,"famille":"Gourmand vanillé","accord":"Vanille lactée","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"128 €","c1":"#C89A5A","c2":"#3C2810","tete":["Noix de coco","Vanille"],"coeur":["Fleur de vanille","Amande"],"fond":["Vanille","Musc","Bois"]},{"id":"yumpumpkintruffle","nom":"Yum Pumpkin Truffle","marque":"Kayali","annee":2022,"famille":"Gourmand","accord":"Potiron caramel","intensite":4,"longevite":"8–10 h","genre":"Femme","prix":"128 €","c1":"#8E5A3B","c2":"#2A1810","tete":["Potiron confit","Cannelle"],"coeur":["Caramel","Praline"],"fond":["Vanille","Fève tonka","Bois"]},{"id":"cherrysmoke","nom":"Cherry Smoke","marque":"D.S. & Durga","annee":2022,"famille":"Boisé fumé","accord":"Cerise encens","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"210 €","c1":"#5A5248","c2":"#1C1814","tete":["Cerise","Fleur de cerisier"],"coeur":["Encens","Bois fumé"],"fond":["Ambre","Musc"]},{"id":"badass","nom":"Badass","marque":"Ex Nihilo","annee":2020,"famille":"Aromatique boisé","accord":"Menthe vétiver","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"180 €","c1":"#4A5A3B","c2":"#141A0E","tete":["Menthe","Bergamote"],"coeur":["Sauge","Géranium"],"fond":["Vétiver","Ambre","Musc"]},{"id":"fleurnarcotique","nom":"Fleur Narcotique","marque":"Ex Nihilo","annee":2013,"famille":"Floral fruité","accord":"Pivoine litchi","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"190 €","c1":"#B08A3B","c2":"#3C2C0E","tete":["Bergamote","Pêche","Litchi"],"coeur":["Pivoine","Fleur d'oranger","Jasmin"],"fond":["Mousse","Musc","Ambre gris"]},{"id":"layla","nom":"Layla","marque":"Lattafa","annee":2020,"famille":"Gourmand fruité","accord":"Poire lavande (dupe Ultra Male)","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"30 €","c1":"#8E3B5A","c2":"#280E1A","tete":["Poire","Bergamote"],"coeur":["Lavande","Cannelle"],"fond":["Vanille","Ambre","Bois de santal"]},{"id":"ameeraloudh","nom":"Ameer Al Oudh","marque":"Lattafa","annee":2021,"famille":"Boisé oriental","accord":"Oud fruité","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"35 €","c1":"#6E4A2E","c2":"#20120A","tete":["Ananas","Bergamote"],"coeur":["Oud","Rose","Safran"],"fond":["Ambre","Patchouli","Musc"]},{"id":"supremacynotonlyintens","nom":"Supremacy Not Only Intense","marque":"Afnan","annee":2021,"famille":"Aromatique fruité","accord":"Ananas ambré","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"40 €","c1":"#5A6E3B","c2":"#1A200E","tete":["Ananas","Bergamote"],"coeur":["Bouleau","Jasmin"],"fond":["Ambre","Musc","Bois"]},{"id":"9pm","nom":"9pm","marque":"Afnan","annee":2020,"famille":"Oriental vanillé","accord":"Lavande cannelle","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"30 €","c1":"#2A1E2E","c2":"#0E0812","tete":["Pomme","Lavande","Bergamote"],"coeur":["Cannelle","Cardamome"],"fond":["Vanille","Ambre","Fève tonka"]},{"id":"turathiblue","nom":"Turathi Blue","marque":"Afnan","annee":2022,"famille":"Ambré fruité","accord":"Fruits musqués","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"35 €","c1":"#B05A3B","c2":"#341810","tete":["Fruits rouges","Bergamote"],"coeur":["Ambre","Fleurs"],"fond":["Vanille","Musc","Bois"]},{"id":"badeealoudamethyst","nom":"Bade'e Al Oud Amethyst","marque":"Lattafa","annee":2022,"famille":"Boisé oriental","accord":"Oud résineux","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"40 €","c1":"#6E4A2E","c2":"#20120A","tete":["Épices","Safran"],"coeur":["Oud","Patchouli"],"fond":["Ambre","Musc","Bois"]},{"id":"nishaneani","nom":"Nishane Ani","marque":"Nishane","annee":2019,"famille":"Ambré vanillé","accord":"Vanille caramel","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"185 €","c1":"#B08A5A","c2":"#342612","tete":["Bergamote","Cassis","Fruits rouges"],"coeur":["Jasmin","Rose"],"fond":["Vanille","Caramel","Musc","Ambre"]},{"id":"tabacrouge","nom":"Tabac Rouge","marque":"Phaedon","annee":2013,"famille":"Oriental épicé","accord":"Tabac miel","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"130 €","c1":"#6E4423","c2":"#26160B","tete":["Épices","Miel"],"coeur":["Tabac","Café","Rose"],"fond":["Ambre","Bois","Encens"]},{"id":"vespertine","nom":"Vespertine","marque":"Rasasi","annee":2021,"famille":"Gourmand fruité","accord":"Fruits crémeux","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"45 €","c1":"#8E3B5A","c2":"#280E1A","tete":["Poire","Framboise"],"coeur":["Praline","Fleur d'oranger"],"fond":["Vanille","Musc","Caramel"]},{"id":"aventuscologne","nom":"Aventus Cologne","marque":"Creed","annee":2019,"famille":"Citrus aromatique","accord":"Ananas menthe","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"250 €","c1":"#B0A83B","c2":"#2C2A0C","tete":["Bergamote","Mandarine","Menthe"],"coeur":["Gingembre","Ananas","Poivre rose"],"fond":["Bois de santal","Musc","Vétiver"]},{"id":"limmensite","nom":"L'Immensité","marque":"Louis Vuitton","annee":2018,"famille":"Aromatique","accord":"Gingembre pamplemousse","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"270 €","c1":"#3B5A4A","c2":"#0E1A14","tete":["Gingembre","Pamplemousse","Bergamote"],"coeur":["Poivre","Notes marines"],"fond":["Ambre","Bois"]},{"id":"imagination","nom":"Imagination","marque":"Louis Vuitton","annee":2021,"famille":"Boisé aromatique","accord":"Thé agrumes","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"270 €","c1":"#2E4C6E","c2":"#101A26","tete":["Bergamote","Mandarine","Néroli"],"coeur":["Thé noir","Café"],"fond":["Ambre","Bois de santal","Musc"]},{"id":"afternoonswim","nom":"Afternoon Swim","marque":"Louis Vuitton","annee":2019,"famille":"Citrus aromatique","accord":"Orange solaire","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"270 €","c1":"#B0A83B","c2":"#2C2A0C","tete":["Orange","Mandarine","Citron"],"coeur":["Gingembre","Néroli"],"fond":["Ambroxan","Musc"]},{"id":"molecule01","nom":"Molecule 01","marque":"Escentric Molecules","annee":2006,"famille":"Boisé musqué","accord":"Iso E Super seul","intensite":2,"longevite":"5–7 h","genre":"Mixte","prix":"95 €","c1":"#6E6456","c2":"#221E16","tete":["Iso E Super"],"coeur":["Iso E Super"],"fond":["Bois ambrés"]},{"id":"notaperfume","nom":"Not A Perfume","marque":"Juliette Has a Gun","annee":2010,"famille":"Musqué","accord":"Ambroxan pur","intensite":2,"longevite":"5–7 h","genre":"Mixte","prix":"95 €","c1":"#A89E90","c2":"#302A24","tete":["Ambroxan"],"coeur":["Ambroxan"],"fond":["Ambroxan"]},{"id":"baldafrique","nom":"Bal d'Afrique","marque":"Byredo","annee":2009,"famille":"Floral boisé","accord":"Néroli vétiver","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"210 €","c1":"#8E6E7A","c2":"#282024","tete":["Bergamote","Néroli","Citron"],"coeur":["Violette","Jasmin","Cyclamen"],"fond":["Vétiver","Cèdre","Musc","Ambre"]},{"id":"gypsywater","nom":"Gypsy Water","marque":"Byredo","annee":2008,"famille":"Boisé aromatique","accord":"Pin vanille","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"210 €","c1":"#2E4C6E","c2":"#101A26","tete":["Bergamote","Citron","Poivre","Genièvre"],"coeur":["Encens","Pin","Orris"],"fond":["Ambre","Vanille","Bois de santal"]},{"id":"mojaveghost","nom":"Mojave Ghost","marque":"Byredo","annee":2014,"famille":"Boisé floral","accord":"Ambrette bois","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"210 €","c1":"#6E5E80","c2":"#241D30","tete":["Ambrette","Néspola"],"coeur":["Violette","Magnolia"],"fond":["Bois de cèdre","Musc","Ambre"]},{"id":"blanche","nom":"Blanche","marque":"Byredo","annee":2009,"famille":"Floral musqué","accord":"Aldéhydes musc","intensite":2,"longevite":"5–7 h","genre":"Femme","prix":"210 €","c1":"#4A5A3B","c2":"#141A0E","tete":["Aldéhydes","Rose","Poivre rose"],"coeur":["Violette","Pivoine"],"fond":["Musc","Bois de santal","Ambre"]},{"id":"baccaratrougeextrait","nom":"Baccarat Rouge Extrait","marque":"Maison Francis Kurkdjian","annee":2017,"famille":"Ambré boisé","accord":"Safran résine","intensite":5,"longevite":"12 h+","genre":"Mixte","prix":"340 €","c1":"#9A3A34","c2":"#2C0A0A","tete":["Safran","Jasmin"],"coeur":["Ambre gris","Cèdre"],"fond":["Résine de sapin","Bouleau"]},{"id":"muscskoublaikhan","nom":"Muscs Koublaï Khän","marque":"Serge Lutens","annee":1998,"famille":"Musqué animalique","accord":"Musc cuir","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"165 €","c1":"#7A5A4A","c2":"#241A14","tete":["Musc","Cumin"],"coeur":["Civette","Rose","Costus"],"fond":["Ambre","Castoréum","Patchouli"]},{"id":"chergui","nom":"Chergui","marque":"Serge Lutens","annee":2005,"famille":"Oriental épicé","accord":"Tabac miel foin","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"165 €","c1":"#6E4423","c2":"#26160B","tete":["Tabac","Foin","Miel"],"coeur":["Rose","Iris","Fleur d'oranger"],"fond":["Ambre","Musc","Benjoin","Bois de santal"]},{"id":"feminitedubois","nom":"Feminité du Bois","marque":"Serge Lutens","annee":1992,"famille":"Boisé épicé","accord":"Cèdre prune","intensite":3,"longevite":"7–9 h","genre":"Femme","prix":"150 €","c1":"#6B6156","c2":"#26211C","tete":["Cèdre","Prune","Pêche"],"coeur":["Cannelle","Girofle","Rose"],"fond":["Musc","Santal","Vanille"]},{"id":"boisimperial","nom":"Bois Imperial","marque":"Essential Parfums","annee":2019,"famille":"Boisé aromatique","accord":"Vétiver iris","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"120 €","c1":"#2E4C6E","c2":"#101A26","tete":["Pamplemousse","Bergamote"],"coeur":["Vétiver","Iris","Géranium"],"fond":["Ambre","Patchouli","Musc"]},{"id":"nicebergamote","nom":"Nice Bergamote","marque":"Nicolaï","annee":2016,"famille":"Citrus musqué","accord":"Bergamote propre","intensite":2,"longevite":"5–7 h","genre":"Mixte","prix":"95 €","c1":"#A8A85A","c2":"#2C2C14","tete":["Bergamote","Poire","Genièvre"],"coeur":["Néroli","Cardamome"],"fond":["Musc","Bois de cèdre","Ambre"]},{"id":"encrenoire","nom":"Encre Noire","marque":"Lalique","annee":2006,"famille":"Boisé","accord":"Vétiver sombre","intensite":3,"longevite":"7–9 h","genre":"Homme","prix":"50 €","c1":"#6E6456","c2":"#221E16","tete":["Vétiver","Cyprès"],"coeur":["Vétiver de Haïti","Bois de cachemire"],"fond":["Musc","Bois précieux"]},{"id":"amenpuremalt","nom":"A*Men Pure Malt","marque":"Mugler","annee":2013,"famille":"Gourmand boisé","accord":"Whisky caramel","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"90 €","c1":"#8E4A24","c2":"#2A1206","tete":["Bergamote","Malt"],"coeur":["Caramel","Miel","Café"],"fond":["Patchouli","Fève tonka","Bois"]},{"id":"coffeebreak","nom":"Coffee Break","marque":"Maison Margiela","annee":2023,"famille":"Gourmand","accord":"Café latte","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"135 €","c1":"#8E5A3B","c2":"#2A1810","tete":["Café","Cardamome"],"coeur":["Lait","Fleur d'oranger"],"fond":["Musc","Bois blond"]},{"id":"underthelemontrees","nom":"Under the Lemon Trees","marque":"Maison Margiela","annee":2023,"famille":"Citrus vert","accord":"Citron figuier","intensite":2,"longevite":"5–7 h","genre":"Mixte","prix":"135 €","c1":"#8EA83B","c2":"#28300E","tete":["Citron","Bergamote","Petit grain"],"coeur":["Feuille de figuier","Néroli"],"fond":["Musc","Bois blanc"]},{"id":"whispersinthelibrary","nom":"Whispers in the Library","marque":"Maison Margiela","annee":2019,"famille":"Boisé épicé","accord":"Poivre vanille bois","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"135 €","c1":"#6B6156","c2":"#26211C","tete":["Poivre","Bergamote"],"coeur":["Vanille","Fleur"],"fond":["Bois de cèdre","Papier","Musc"]},{"id":"beachwalk","nom":"Beach Walk","marque":"Maison Margiela","annee":2015,"famille":"Floral solaire","accord":"Coco monoï","intensite":3,"longevite":"7–9 h","genre":"Mixte","prix":"135 €","c1":"#B0925A","c2":"#342A14","tete":["Bergamote","Poivre rose"],"coeur":["Ylang-ylang","Noix de coco","Héliotrope"],"fond":["Musc","Benjoin","Cèdre"]},{"id":"wonderland","nom":"Wonderland","marque":"Penhaligon's","annee":2023,"famille":"Gourmand fruité","accord":"Rhubarbe caramel","intensite":4,"longevite":"8–10 h","genre":"Femme","prix":"190 €","c1":"#8E3B5A","c2":"#280E1A","tete":["Rhubarbe","Bergamote"],"coeur":["Osmanthus","Cuir"],"fond":["Caramel","Vanille","Musc"]},{"id":"kismet","nom":"Kismet","marque":"Lattafa","annee":2023,"famille":"Ambré épicé","accord":"Safran vanille","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"35 €","c1":"#8E5A2E","c2":"#2C1A0C","tete":["Safran","Poivre rose"],"coeur":["Rose","Bois"],"fond":["Vanille","Ambre","Musc"]},{"id":"feelssogood","nom":"Feels So Good","marque":"Amouroud","annee":2022,"famille":"Gourmand","accord":"Barbe à papa","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"120 €","c1":"#8E5A3B","c2":"#2A1810","tete":["Fruits rouges","Sucre"],"coeur":["Barbe à papa","Praline"],"fond":["Vanille","Musc","Caramel"]},{"id":"overdose","nom":"Overdose","marque":"Giardini di Toscana","annee":2021,"famille":"Gourmand vanillé","accord":"Vanille tabac","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"165 €","c1":"#C89A5A","c2":"#3C2810","tete":["Bergamote","Rhum"],"coeur":["Vanille","Tabac"],"fond":["Fève tonka","Musc","Bois"]},{"id":"ganymede","nom":"Ganymede","marque":"Marc-Antoine Barrois","annee":2019,"famille":"Cuir suédé","accord":"Safran mandarine","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"230 €","c1":"#6E5648","c2":"#201814","tete":["Mandarine","Safran"],"coeur":["Cuir","Osmanthus"],"fond":["Ambroxan","Musc","Bois"]},{"id":"encelade","nom":"Encelade","marque":"Marc-Antoine Barrois","annee":2023,"famille":"Gourmand boisé","accord":"Amande caramel","intensite":4,"longevite":"8–10 h","genre":"Mixte","prix":"230 €","c1":"#8E4A24","c2":"#2A1206","tete":["Amande","Bergamote"],"coeur":["Caramel","Cannelle"],"fond":["Bois","Musc","Vanille"]},{"id":"lebeauleparfum","nom":"Le Beau Le Parfum","marque":"Jean Paul Gaultier","annee":2021,"famille":"Boisé oriental","accord":"Coco bois","intensite":4,"longevite":"8–10 h","genre":"Homme","prix":"90 €","c1":"#6E4A2E","c2":"#20120A","tete":["Bergamote"],"coeur":["Coco","Ipê Roxo"],"fond":["Bois","Ambre"]}];
 const P=Object.fromEntries(PERFUMES.map(p=>[p.id,p]));
 
 const RECIPES=[
- {id:1,titre:"Cuir fumé du soir",a:"ombre",b:"jazz",doses:[2,1],occ:["Soirée","Hiver","Homme"],note:4.8,votes:412,likes:1240,
+ {id:1,titre:"Cuir fumé du soir",a:"ombreleather",b:"jazzclub",doses:[2,1],occ:["Soirée","Hiver","Homme"],note:4.8,votes:412,likes:1240,
   desc:"Le cuir de Tom Ford enveloppé du rhum et du tabac de Jazz Club : une odeur cuirée, fumée et légèrement vanillée.",
   user:{n:"Camille R.",ini:"CR",badge:"Master Blender",col:"#8E5A3B"}},
- {id:2,titre:"Nuage doré",a:"br540",b:"libre",doses:[1,2],occ:["Été","Mixte","Sortie"],note:4.6,votes:298,likes:986,
+ {id:2,titre:"Nuage doré",a:"baccaratrouge540",b:"libre",doses:[1,2],occ:["Été","Mixte","Sortie"],note:4.6,votes:298,likes:986,
   desc:"La lavande solaire de Libre adoucit le safran de BR540 : un sillage lumineux, sucré sans être écœurant.",
   user:{n:"Aya K.",ini:"AK",badge:"Expert",col:"#5A6E8E"}},
- {id:3,titre:"Feu de cheminée gourmand",a:"fire",b:"tv",doses:[2,1],occ:["Hiver","Cocooning","Mixte"],note:4.9,votes:521,likes:1730,
+ {id:3,titre:"Feu de cheminée gourmand",a:"bythefireplace",b:"tobaccovanille",doses:[2,1],occ:["Hiver","Cocooning","Mixte"],note:4.9,votes:521,likes:1730,
   desc:"Marron grillé, fumée douce et vanille tabac : l'odeur exacte d'un chalet en décembre.",
   user:{n:"Théo M.",ini:"TM",badge:"Master Blender",col:"#6E4A8E"}},
- {id:4,titre:"Iris velours",a:"dhi",b:"gris",doses:[2,2],occ:["Bureau","Automne","Homme"],note:4.4,votes:187,likes:642,
+ {id:4,titre:"Iris velours",a:"diorhommeintense",b:"grischarnel",doses:[2,2],occ:["Bureau","Automne","Homme"],note:4.4,votes:187,likes:642,
   desc:"L'iris poudré rencontre la figue et le santal : élégant, feutré, jamais envahissant. Parfait sous une chemise.",
   user:{n:"Lina B.",ini:"LB",badge:"Amateur",col:"#8E3B5A"}},
- {id:5,titre:"Bleu intense",a:"bleu",b:"nuit",doses:[3,2],occ:["Quotidien","Printemps","Homme"],note:4.2,votes:233,likes:710,
+ {id:5,titre:"Bleu intense",a:"bleudechaneledp",b:"lanuitdelhomme",doses:[3,2],occ:["Quotidien","Printemps","Homme"],note:4.2,votes:233,likes:710,
   desc:"La fraîcheur ambrée du Bleu, densifiée par la cardamome de La Nuit : polyvalent du matin au dîner.",
   user:{n:"Marc D.",ini:"MD",badge:"Expert",col:"#3B6E5A"}},
- {id:6,titre:"Vanille royale",a:"br540",b:"tv",doses:[1,1],occ:["Luxe","Soirée","Mixte"],note:4.7,votes:344,likes:1105,
+ {id:6,titre:"Vanille royale",a:"baccaratrouge540",b:"tobaccovanille",doses:[1,1],occ:["Luxe","Soirée","Mixte"],note:4.7,votes:344,likes:1105,
   desc:"Deux monuments en un seul sillage : safran cristallin sur lit de tabac vanillé. Projection monstrueuse, à doser léger.",
   user:{n:"Sofia P.",ini:"SP",badge:"Légende",col:"#8E6E3B"}}
 ];
@@ -588,13 +590,14 @@ const MOON='<path d="M20 13.5A8.5 8.5 0 0 1 10.5 4a8.5 8.5 0 1 0 9.5 9.5z"/>';
 function setTheme(t){
   document.documentElement.dataset.theme=t;
   document.getElementById("themeIcon").innerHTML=t==="light"?MOON:SUN;
+  try{localStorage.setItem("sillage_theme",t)}catch(e){}
 }
 function toggleTheme(){
   const next=document.documentElement.dataset.theme==="light"?"dark":"light";
   setTheme(next);
   toast(next==="light"?"Mode clair activé":"Mode sombre activé");
 }
-setTheme("light");
+setTheme(load("sillage_theme","dark"));
 
 /* ================= Navigation ================= */
 function go(page){
@@ -612,60 +615,98 @@ function toast(msg){
   toastTimer=setTimeout(()=>t.classList.remove("show"),2600);
 }
 
+/* ================= Persistance (localStorage) ================= */
+function load(key,fallback){
+  try{const v=localStorage.getItem(key);return v==null?fallback:JSON.parse(v)}
+  catch(e){return fallback}
+}
+function save(key,val){try{localStorage.setItem(key,JSON.stringify(val))}catch(e){}}
+/* Échappe le HTML des textes saisis par l'utilisateur avant innerHTML */
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* Recettes publiées par l'utilisateur (persistées) */
+let USER_RECIPES=load("sillage_recipes",[]);
+function allRecipes(){return USER_RECIPES.concat(RECIPES).filter(r=>P[r.a]&&P[r.b]);}
+function findRecipe(id){return allRecipes().find(r=>String(r.id)===String(id));}
+
 /* ================= Rendu recettes ================= */
-const state={likes:{},saves:{}};
+const state={likes:load("sillage_likes",{}),saves:load("sillage_saves",{})};
 function starSvg(){return '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>'}
 function recipeCard(r){
   const a=P[r.a],b=P[r.b];
   const liked=state.likes[r.id],saved=state.saves[r.id];
+  const comments=Math.round(r.votes/3);
+  const lastAction=r.own
+    ? `<button class="act" onclick="event.stopPropagation();deleteRecipe('${r.id}')" aria-label="Supprimer">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7"/></svg></button>`
+    : `<button class="act" onclick="event.stopPropagation();toast('Recette signalée — notre équipe va vérifier. Merci.')" aria-label="Signaler">
+        <svg viewBox="0 0 24 24"><path d="M5 21V4m0 1h13l-2.5 4L18 13H5"/></svg></button>`;
   return `<article class="recipe-card" tabindex="0">
     <div class="rc-top">
       <span class="rc-user"><span class="mini-av" style="background:linear-gradient(135deg,${r.user.col},#241812)">${r.user.ini}</span>${r.user.n}</span>
-      <span class="badge ${/Master|Légende/.test(r.user.badge)?"gold":"plain"}">${r.user.badge}</span>
+      <span class="badge ${r.own?"gold":/Master|Légende/.test(r.user.badge)?"gold":"plain"}">${r.own?"Ma recette":r.user.badge}</span>
     </div>
-    <h3 class="rc-title">${r.titre}</h3>
+    <h3 class="rc-title">${esc(r.titre)}</h3>
     <div class="rc-formula">
       <div class="rc-line"><span class="rc-chip" style="background:linear-gradient(135deg,${a.c1},${a.c2})"></span><b>${a.nom}</b><span class="dose">${r.doses[0]}×</span></div>
       <div class="rc-line"><span class="rc-chip" style="background:linear-gradient(135deg,${b.c1},${b.c2})"></span><b>${b.nom}</b><span class="dose">${r.doses[1]}×</span></div>
     </div>
-    <p class="rc-desc">${r.desc}</p>
+    <p class="rc-desc">${esc(r.desc)}</p>
     <div class="tags">${r.occ.map(o=>`<span class="tag">${o}</span>`).join("")}</div>
     <div class="rc-foot">
-      <button class="act ${liked?"on":""}" onclick="event.stopPropagation();toggleLike(${r.id})" aria-label="J'aime">
+      <button class="act ${liked?"on":""}" onclick="event.stopPropagation();toggleLike('${r.id}')" aria-label="J'aime">
         <svg viewBox="0 0 24 24"><path d="M12 20.5S3.5 15 3.5 9.3A4.8 4.8 0 0 1 12 6.5a4.8 4.8 0 0 1 8.5 2.8C20.5 15 12 20.5 12 20.5z"/></svg>${(r.likes+(liked?1:0)).toLocaleString("fr-FR")}</button>
-      <button class="act" onclick="event.stopPropagation();toast('Commentaires — ${Math.round(r.votes/3)} messages')" aria-label="Commenter">
-        <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H4l1.7-3.4A8 8 0 1 1 21 12z"/></svg>${Math.round(r.votes/3)}</button>
-      <button class="act ${saved?"on":""}" onclick="event.stopPropagation();toggleSave(${r.id})" aria-label="Enregistrer">
+      <button class="act" onclick="event.stopPropagation();toast('Commentaires — ${comments} message${comments>1?"s":""}')" aria-label="Commenter">
+        <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H4l1.7-3.4A8 8 0 1 1 21 12z"/></svg>${comments}</button>
+      <button class="act ${saved?"on":""}" onclick="event.stopPropagation();toggleSave('${r.id}')" aria-label="Enregistrer">
         <svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></button>
-      <button class="act" onclick="event.stopPropagation();toast('Recette signalée — notre équipe va vérifier. Merci.')" aria-label="Signaler">
-        <svg viewBox="0 0 24 24"><path d="M5 21V4m0 1h13l-2.5 4L18 13H5"/></svg></button>
-      <span class="stars">${starSvg()}${r.note.toFixed(1).replace(".",",")} · ${r.votes} avis</span>
+      ${lastAction}
+      <span class="stars">${starSvg()}${r.votes?`${r.note.toFixed(1).replace(".",",")} · ${r.votes} avis`:"Nouveau"}</span>
     </div>
   </article>`;
 }
-function toggleLike(id){state.likes[id]=!state.likes[id];renderRecipes();toast(state.likes[id]?"Ajouté à vos j'aime ❤":"Retiré de vos j'aime")}
-function toggleSave(id){state.saves[id]=!state.saves[id];renderRecipes();toast(state.saves[id]?"Enregistré dans vos favoris":"Retiré des favoris")}
+function toggleLike(id){state.likes[id]=!state.likes[id];save("sillage_likes",state.likes);renderRecipes();toast(state.likes[id]?"Ajouté à vos j'aime ❤":"Retiré de vos j'aime")}
+function toggleSave(id){state.saves[id]=!state.saves[id];save("sillage_saves",state.saves);renderRecipes();toast(state.saves[id]?"Enregistré dans vos favoris":"Retiré des favoris")}
 
 let recipeFilter="Toutes";
 function renderRecipes(){
-  const all=["Toutes","Soirée","Hiver","Été","Bureau","Luxe","Quotidien"];
-  document.getElementById("recipeFilters").innerHTML=all.map(f=>`<button class="chip-f ${f===recipeFilter?"on":""}" onclick="recipeFilter='${f}';renderRecipes()">${f}</button>`).join("");
-  const list=RECIPES.filter(r=>recipeFilter==="Toutes"||r.occ.includes(recipeFilter));
-  document.getElementById("recipeCards").innerHTML=list.length?list.map(recipeCard).join(""):'<p class="lab-empty">Aucune recette pour ce filtre — soyez la première personne à en publier une.</p>';
-  document.getElementById("homeCards").innerHTML=[...RECIPES].sort((x,y)=>y.likes-x.likes).slice(0,3).map(recipeCard).join("");
-  document.getElementById("profileCards").innerHTML=RECIPES.filter(r=>r.user.ini==="CR").map(recipeCard).join("")||RECIPES.slice(0,2).map(recipeCard).join("");
+  const savedCount=allRecipes().filter(r=>state.saves[r.id]).length;
+  const all=["Toutes","★ Enregistrées","Soirée","Hiver","Été","Bureau","Luxe","Quotidien"];
+  document.getElementById("recipeFilters").innerHTML=all.map(f=>{
+    const label=f==="★ Enregistrées"&&savedCount?`★ Enregistrées (${savedCount})`:f;
+    return `<button class="chip-f ${f===recipeFilter?"on":""}" onclick="recipeFilter='${f}';renderRecipes()">${label}</button>`;
+  }).join("");
+  let list;
+  if(recipeFilter==="★ Enregistrées") list=allRecipes().filter(r=>state.saves[r.id]);
+  else list=allRecipes().filter(r=>recipeFilter==="Toutes"||r.occ.includes(recipeFilter));
+  const emptyMsg=recipeFilter==="★ Enregistrées"
+    ?'Aucune recette enregistrée pour l\'instant — touchez l\'icône signet sur une recette pour la retrouver ici.'
+    :'Aucune recette pour ce filtre — soyez la première personne à en publier une.';
+  document.getElementById("recipeCards").innerHTML=list.length?list.map(recipeCard).join(""):`<p class="lab-empty">${emptyMsg}</p>`;
+  document.getElementById("homeCards").innerHTML=allRecipes().slice().sort((x,y)=>(y.likes+(state.likes[y.id]?1:0))-(x.likes+(state.likes[x.id]?1:0))).slice(0,3).map(recipeCard).join("");
+  const mine=allRecipes().filter(r=>r.user.ini==="CR");
+  document.getElementById("profileCards").innerHTML=(mine.length?mine:RECIPES.slice(0,2)).map(recipeCard).join("");
+  const statR=document.getElementById("statRecettes");
+  if(statR) statR.textContent=(34+USER_RECIPES.length).toLocaleString("fr-FR");
 }
 
 /* ================= Parfums ================= */
 let famFilter="Toutes";
+const _compatCache={};
 function compatTop(p){
-  return PERFUMES.filter(x=>x.id!==p.id).map(x=>({x,s:score(p,x).total})).sort((a,b)=>b.s-a.s).slice(0,4);
+  if(_compatCache[p.id])return _compatCache[p.id];
+  const r=PERFUMES.filter(x=>x.id!==p.id).map(x=>({x,s:score(p,x).total})).sort((a,b)=>b.s-a.s).slice(0,4);
+  _compatCache[p.id]=r;return r;
 }
 function renderPerfumes(){
-  const fams=["Toutes",...new Set(PERFUMES.map(p=>p.famille))];
+  // familles principales = celles avec le plus de parfums (top 11) + "Toutes"
+  const counts={};PERFUMES.forEach(p=>counts[p.famille]=(counts[p.famille]||0)+1);
+  const top=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]).slice(0,11);
+  const fams=["Toutes",...top];
   document.getElementById("familyFilters").innerHTML=fams.map(f=>`<button class="chip-f ${f===famFilter?"on":""}" onclick="famFilter='${f}';renderPerfumes()">${f}</button>`).join("");
   const q=(document.getElementById("globalSearch").value||"").toLowerCase();
   const list=PERFUMES.filter(p=>(famFilter==="Toutes"||p.famille===famFilter)&&(!q||[p.nom,p.marque,p.famille,p.accord,...p.tete,...p.coeur,...p.fond].join(" ").toLowerCase().includes(q)));
+  const cEl=document.getElementById("perfumeCount");if(cEl)cEl.textContent=list.length+" parfum"+(list.length>1?"s":"");
   document.getElementById("perfumeGrid").innerHTML=list.map(p=>{
     const best=compatTop(p)[0];
     return `<article class="perfume-card" onclick="openPerfume('${p.id}')" tabindex="0">
@@ -722,22 +763,43 @@ function closeModal(){document.getElementById("modalWrap").classList.remove("ope
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
 
 /* ================= Labo IA ================= */
+/* Affinité de familles par axes olfactifs — générique, fonctionne pour n'importe
+   quelle famille (même composée : "Boisé ambré", "Oriental gourmand"…). */
+const FAM_AXIS={
+  boise:"boise",
+  oriental:"chaud",ambre:"chaud",vanille:"chaud",gourmand:"chaud",gourmande:"chaud",
+  epice:"chaud",fume:"chaud",cuir:"chaud",suede:"chaud",animalique:"chaud",resineux:"chaud",
+  floral:"floral",rose:"floral",poudre:"floral",solaire:"floral",musque:"floral",
+  aromatique:"frais",fougere:"frais",citrus:"frais",aquatique:"frais",fraiche:"frais",vert:"frais",marin:"frais",
+  fruite:"fruite",fruitee:"fruite",chypre:"fruite",chypree:"fruite"
+};
+/* Affinité 0..1 entre deux axes (à quel point ils se superposent bien) */
+const FAM_AFF={
+  "boise|chaud":1,"boise|frais":.9,"boise|floral":.8,"boise|fruite":.7,
+  "chaud|floral":.8,"chaud|fruite":.8,"chaud|frais":.35,
+  "floral|fruite":.85,"floral|frais":.7,"frais|fruite":.65
+};
+function famAffinity(a,b){
+  if(a.famille===b.famille) return 24;
+  const axes=f=>[...new Set(f.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
+    .split(/[\s-]+/).map(t=>FAM_AXIS[t]).filter(Boolean))];
+  const AA=axes(a.famille),AB=axes(b.famille);
+  if(!AA.length||!AB.length) return 10;
+  const shared=AA.filter(x=>AB.includes(x)).length;
+  let best=0;
+  AA.forEach(x=>AB.forEach(y=>{
+    if(x===y){best=Math.max(best,1);return;}
+    const k=[x,y].sort().join("|");
+    if(FAM_AFF[k]!=null) best=Math.max(best,FAM_AFF[k]);
+  }));
+  return Math.min(24,Math.round(6+shared*4+best*12));
+}
 function score(a,b){
   const notes=x=>[...x.tete,...x.coeur,...x.fond];
   const shared=notes(a).filter(n=>notes(b).some(m=>m.toLowerCase()===n.toLowerCase()));
-  const FAM={"Cuir":["Boisé oriental","Oriental épicé","Boisé épicé","Boisé ambré"],
-    "Boisé oriental":["Cuir","Oriental épicé","Boisé ambré","Ambré floral"],
-    "Ambré floral":["Floral oriental","Oriental épicé","Boisé oriental"],
-    "Boisé floral":["Boisé épicé","Oriental boisé","Boisé aromatique"],
-    "Boisé aromatique":["Oriental boisé","Boisé floral","Boisé épicé"],
-    "Oriental épicé":["Cuir","Boisé ambré","Ambré floral","Boisé oriental"],
-    "Boisé épicé":["Boisé floral","Cuir","Boisé aromatique"],
-    "Oriental boisé":["Boisé aromatique","Boisé floral","Cuir"],
-    "Floral oriental":["Ambré floral","Oriental épicé"],
-    "Boisé ambré":["Oriental épicé","Cuir","Boisé oriental"]};
-  const famScore=a.famille===b.famille?14:(FAM[a.famille]||[]).includes(b.famille)?22:6;
+  const famScore=famAffinity(a,b);
   const intGap=Math.abs(a.intensite-b.intensite);
-  const total=Math.max(38,Math.min(97,52+shared.length*9+famScore-intGap*4));
+  const total=Math.max(40,Math.min(97,46+shared.length*8+famScore-intGap*5));
   return {total,shared,intGap};
 }
 function preset(a,b){document.getElementById("labA").value=a;document.getElementById("labB").value=b;runLab()}
@@ -747,7 +809,7 @@ function runLab(){
   if(!a||!b||a.id===b.id){R.innerHTML='<div class="lab-empty">Choisissez deux parfums différents pour lancer l\'analyse.</div>';return}
   const {total,shared,intGap}=score(a,b);
   const strong=a.intensite>=b.intensite?a:b, light=strong===a?b:a;
-  const rStrong=intGap>=2?1:2, rLight=intGap>=2?2:intGap===1?2:2;
+  const rStrong=intGap>=2?1:2, rLight=2;
   const verdictTxt=total>=85?"Accord excellent — les familles se répondent naturellement.":total>=70?"Accord cohérent — belle complémentarité, à doser avec soin.":total>=55?"Accord audacieux — intéressant sur peau, testez avant de sortir.":"Accord risqué — les pyramides se contrarient plus qu'elles ne fusionnent.";
   const circ=2*Math.PI*56;
   R.innerHTML=`
@@ -783,23 +845,130 @@ const RANKS={
 };
 function renderRanks(){
   document.getElementById("rankTabs").innerHTML=Object.keys(RANKS).map(t=>`<button class="chip-f ${t===rankTab?"on":""}" onclick="rankTab='${t}';renderRanks()">${t}</button>`).join("");
-  const metric=r=>rankTab==="Les mieux notés"?`★ ${r.note.toFixed(1).replace(".",",")}`:rankTab==="Les plus populaires"?`${r.likes.toLocaleString("fr-FR")} ♥`:`${r.votes} avis`;
-  document.getElementById("rankList").innerHTML=RANKS[rankTab](RECIPES).map((r,i)=>{
+  const metric=r=>rankTab==="Les mieux notés"?`★ ${r.note.toFixed(1).replace(".",",")}`:rankTab==="Les plus populaires"?(r.likes?`${r.likes.toLocaleString("fr-FR")} ♥`:"Nouveau"):(r.votes?`${r.votes} avis`:"Nouveau");
+  document.getElementById("rankList").innerHTML=RANKS[rankTab](allRecipes()).map((r,i)=>{
     const a=P[r.a],b=P[r.b];
     return `<div class="rank-item" onclick="go('recettes')">
       <span class="rank-pos">${i+1}</span>
       <span class="rank-blend"><span class="rc-chip" style="background:linear-gradient(135deg,${a.c1},${a.c2})"></span><span class="rc-chip" style="background:linear-gradient(135deg,${b.c1},${b.c2})"></span></span>
-      <span class="rank-info"><b>${r.titre}</b><span>${a.nom} + ${b.nom} · par ${r.user.n}</span></span>
+      <span class="rank-info"><b>${esc(r.titre)}</b><span>${a.nom} + ${b.nom} · par ${r.user.n}</span></span>
       <span class="rank-metric">${metric(r)}</span>
     </div>`;
   }).join("");
+}
+
+/* ================= Éditeur de recette ================= */
+const OCCASIONS=["Soirée","Quotidien","Bureau","Sortie","Été","Hiver","Printemps","Automne","Luxe","Cocooning","Homme","Femme","Mixte"];
+let editorTags=new Set();
+function perfumeOptions(sel){
+  return PERFUMES.map(p=>`<option value="${p.id}" ${p.id===sel?"selected":""}>${p.nom} · ${p.marque}</option>`).join("");
+}
+function openRecipeEditor(){
+  editorTags=new Set();
+  const dA=PERFUMES[0].id,dB=PERFUMES[1].id;
+  document.getElementById("modalBody").innerHTML=`
+    <button class="modal-close" onclick="closeModal()" aria-label="Fermer">×</button>
+    <div class="editor">
+      <h3>Publier une recette</h3>
+      <p class="editor-sub">Composez votre layering signature. L'IA calcule la compatibilité en direct pendant que vous choisissez.</p>
+
+      <div class="form-field">
+        <label>Nom de la recette</label>
+        <input class="form-input" id="edTitre" maxlength="46" placeholder="ex. Cuir fumé du soir" oninput="clearEdError()">
+      </div>
+
+      <div class="form-field">
+        <label>Parfum principal · dose</label>
+        <div class="form-row">
+          <select class="lab-select" id="edA" style="margin:0" onchange="updateEditorPreview()">${perfumeOptions(dA)}</select>
+          <input class="dose-input" id="edDoseA" type="number" min="1" max="6" value="2" oninput="updateEditorPreview()">
+        </div>
+        <div class="form-row">
+          <select class="lab-select" id="edB" style="margin:0" onchange="updateEditorPreview()">${perfumeOptions(dB)}</select>
+          <input class="dose-input" id="edDoseB" type="number" min="1" max="6" value="1" oninput="updateEditorPreview()">
+        </div>
+      </div>
+
+      <div class="editor-preview" id="edPreview"></div>
+
+      <div class="form-field">
+        <label>Occasions & tags</label>
+        <div class="tag-picker" id="edTags">
+          ${OCCASIONS.map(o=>`<span class="tag-pick" onclick="toggleEditorTag(this,'${o}')">${o}</span>`).join("")}
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label>Description</label>
+        <textarea class="form-textarea" id="edDesc" maxlength="220" placeholder="Décrivez le sillage : notes qui ressortent, moment idéal, effet sur peau…"></textarea>
+      </div>
+
+      <div class="form-error" id="edError"></div>
+      <div class="editor-actions">
+        <button class="btn-gold" onclick="submitRecipe()">Publier ma recette</button>
+        <button class="btn-ghost" onclick="closeModal()">Annuler</button>
+      </div>
+    </div>`;
+  document.getElementById("modalWrap").classList.add("open");
+  document.body.style.overflow="hidden";
+  updateEditorPreview();
+}
+function toggleEditorTag(el,tag){
+  if(editorTags.has(tag)){editorTags.delete(tag);el.classList.remove("on");}
+  else{editorTags.add(tag);el.classList.add("on");}
+}
+function clearEdError(){document.getElementById("edError").textContent="";}
+function updateEditorPreview(){
+  const box=document.getElementById("edPreview");if(!box)return;
+  const a=P[document.getElementById("edA").value],b=P[document.getElementById("edB").value];
+  if(!a||!b||a.id===b.id){
+    box.innerHTML=`<div class="pv-txt">Choisissez deux parfums différents pour voir le score de compatibilité.</div>`;return;
+  }
+  const {total,shared}=score(a,b);
+  const verdict=total>=85?"Accord excellent, les familles se répondent.":total>=70?"Accord cohérent, belle complémentarité.":total>=55?"Accord audacieux à tester sur peau.":"Accord risqué, les pyramides se contrarient.";
+  const notes=shared.length?`Notes communes : <b>${shared.join(", ")}</b>.`:"Fusion par les notes de fond.";
+  box.innerHTML=`<span class="pv-num">${total}<span style="font-size:14px">%</span></span><div class="pv-txt"><b>${verdict}</b><br>${notes}</div>`;
+}
+function submitRecipe(){
+  const err=document.getElementById("edError");
+  const titre=document.getElementById("edTitre").value.trim();
+  const a=document.getElementById("edA").value,b=document.getElementById("edB").value;
+  const da=Math.max(1,Math.min(6,+document.getElementById("edDoseA").value||1));
+  const db=Math.max(1,Math.min(6,+document.getElementById("edDoseB").value||1));
+  let desc=document.getElementById("edDesc").value.trim();
+  if(!titre){err.textContent="Donnez un nom à votre recette.";return;}
+  if(!a||!b){err.textContent="Choisissez deux parfums.";return;}
+  if(a===b){err.textContent="Choisissez deux parfums différents.";return;}
+  const {total}=score(P[a],P[b]);
+  if(!desc) desc=`${P[a].accord} rencontre ${P[b].accord} : un sillage à ${da+db} pulvérisations, dominante ${P[a].famille.toLowerCase()}.`;
+  const occ=editorTags.size?[...editorTags]:["Signature"];
+  const recipe={id:"u"+Date.now(),titre,a,b,doses:[da,db],occ,note:+(total/20).toFixed(1),votes:0,likes:0,desc,
+    user:{n:"Camille R.",ini:"CR",badge:"Master Blender",col:"#8E5A3B"},own:true};
+  USER_RECIPES.unshift(recipe);
+  save("sillage_recipes",USER_RECIPES);
+  closeModal();
+  recipeFilter="Toutes";
+  go("recettes");
+  renderRecipes();renderRanks();
+  toast("Recette publiée ✦ Compatibilité "+total+" %");
+}
+function deleteRecipe(id){
+  const r=USER_RECIPES.find(x=>String(x.id)===String(id));
+  if(!r) return;
+  if(!confirm("Supprimer la recette « "+r.titre+" » ?")) return;
+  USER_RECIPES=USER_RECIPES.filter(x=>String(x.id)!==String(id));
+  save("sillage_recipes",USER_RECIPES);
+  delete state.likes[id];delete state.saves[id];
+  save("sillage_likes",state.likes);save("sillage_saves",state.saves);
+  renderRecipes();renderRanks();
+  toast("Recette supprimée");
 }
 
 /* ================= Init ================= */
 function fillLabSelects(){
   const opts='<option value="">— Choisir un parfum —</option>'+PERFUMES.map(p=>`<option value="${p.id}">${p.nom} · ${p.marque}</option>`).join("");
   labA.innerHTML=opts;labB.innerHTML=opts;
-  labA.value="ombre";labB.value="jazz";
+  labA.value=PERFUMES[0].id;labB.value=PERFUMES[1].id;
 }
 const PARTNERS=[
  {eyebrow:"Développez votre maison",titre:"Marques de parfum",
@@ -833,9 +1002,17 @@ document.getElementById("partnerGrid").innerHTML=PARTNERS.map(p=>`
     <button class="btn-gold" onclick="toast(${JSON.stringify(p.msg)})">${p.cta}</button>
   </article>`).join("");
 
-document.getElementById("collGrid").innerHTML=COLLECTIONS.map(c=>`
-  <div class="coll-card" onclick="toast('Collection « ${c.t} » — ${c.n}')"><div class="coll-glow" style="background:${c.g}"></div><h4>${c.t}</h4><span>${c.n}</span></div>`).join("");
+function collToast(i){const c=COLLECTIONS[i];toast("Collection « "+c.t+" » — "+c.n)}
+document.getElementById("collGrid").innerHTML=COLLECTIONS.map((c,i)=>`
+  <div class="coll-card" onclick="collToast(${i})"><div class="coll-glow" style="background:${c.g}"></div><h4>${c.t}</h4><span>${c.n}</span></div>`).join("");
 document.getElementById("globalSearch").addEventListener("input",()=>{go("parfums");renderPerfumes()});
+const hp=document.getElementById("heroPerfumes");if(hp)hp.textContent=PERFUMES.length;
+/* Compatibilité réelle de la Formule du jour (calculée par le moteur) */
+(function(){
+  const el=document.getElementById("heroCompat");
+  const a=P["ombreleather"],b=P["jazzclub"];
+  if(el&&a&&b)el.textContent="Compatibilité "+score(a,b).total+" %";
+})();
 renderRecipes();renderPerfumes();renderRanks();fillLabSelects();
 </script>
 </body>
